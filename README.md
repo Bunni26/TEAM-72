@@ -1,118 +1,106 @@
 🤖 AI-Powered Customer Support Automation System
-RAG + n8n Workflow Orchestration
+Ollama-Based Reasoning · n8n Workflow Orchestration
 📌 Overview
 
-This project is an AI-driven, autonomous customer support system that goes beyond traditional chatbots by combining:
+This project is an AI-powered customer support automation system built using a locally hosted LLM via Ollama and workflow orchestration with n8n.
 
-Large Language Models (LLMs)
+The system intelligently understands customer queries, decides whether to respond or take action, and automatically executes real-world workflows such as ticket creation and notifications — all without using cloud LLMs or external embedding services.
 
-Retrieval-Augmented Generation (RAG)
+The design focuses on local inference, automation, and practical backend orchestration, making it suitable for self-hosted and privacy-sensitive environments.
 
-Workflow automation using n8n
+🚀 Key Advantages
 
-The system can answer customer queries using enterprise documents, automatically execute workflows such as ticket creation and email notifications, and provide explainable, auditable responses suitable for real-world enterprise use.
+Fully local AI using Ollama
+Uses a locally hosted LLM (via Ollama) for reasoning and response generation, ensuring data privacy and zero dependency on cloud AI services.
 
-🚩 Problem Statement
+Intent-aware decision making
+Interprets customer intent using LLM reasoning to determine whether to answer a query or trigger an operational workflow.
 
-Customer support teams handle a large number of repetitive queries and operational requests such as refunds, policy clarifications, delivery issues, and account updates. Existing customer support chatbots are largely rule-based and limited to predefined flows, making them unable to understand unstructured documents or automate complex workflows. This leads to high manual effort, slow response times, increased operational costs, and poor customer experience.
+Automated workflow execution
+Integrates with n8n to automatically perform actions such as ticket creation, email notifications, and escalation.
 
-There is a need for an intelligent, autonomous customer support system that can retrieve accurate information from enterprise documents, reason over user intent, automate operational workflows, and provide transparent, auditable decisions.
+End-to-end support automation
+Handles both conversational responses and operational requests within a single system.
 
-🎯 Solution
+Auditable and traceable actions
+All interactions and triggered workflows can be logged, enabling transparency and monitoring.
 
-This project introduces an AI-Powered Customer Support Automation System that:
+Modular and extensible architecture
+Clean separation between frontend, AI reasoning, and workflow orchestration allows easy future enhancements.
 
-Retrieves accurate answers from company documents using RAG
 
-Reasons over customer intent using LLMs
 
-Executes real-world actions via n8n workflows
-
-Provides citations and explanations
-
-Logs every interaction for auditability
-
-Handles failures with retry and escalation mechanisms
-
-🏗️ Architecture Overview
+Privacy-friendly design
+No user data is sent to third-party AI APIs; all AI inference runs locally.
 User
  ↓
-Frontend (React Chat UI)
+Frontend (Chat UI)
  ↓
-Backend API (FastAPI)
+Backend API (n8n Webhook)
  ↓
-Intent Detection + AI Agent
+LLM Reasoning (Ollama)
  ↓
-RAG Pipeline (Embeddings + Vector DB)
- ↓
-LLM Reasoning
+Intent-Based Routing
  ↓
 n8n Workflow Orchestration
  ↓
 Actions (Ticket, Email, Escalation)
- ↓
-Simple Memory
 
 🤖 Core Components
-1. AI Agent
+LLM Reasoning (Ollama)
 
-Interprets user intent
+Uses a locally running LLM (e.g., Phi, Llama-family models)
 
-Decides whether to answer or trigger an action
+Interprets user queries
 
-Uses tools (workflows, APIs)
+Generates natural language responses
 
-Maintains short-term conversation memory
+Determines whether an action is required
 
-2. Retrieval-Augmented Generation (RAG)
+Workflow Automation (n8n)
 
-Prevents hallucinations
+Acts as the orchestration backbone
 
-Retrieves answers strictly from documents
-
-Provides citations for transparency
-
-3. Workflow Automation (n8n)
+Handles:
 
 Ticket creation
 
 Email notifications
 
-Human escalation
+Audit logging
 
-Retry & failure handling
+Conditional branching
 
-Integration with external systems
-
-
-⚙️ Tech Stack
-AI & NLP
-
-OpenAI GPT (LLM)
-
-OpenAI Embeddings
-
-Retrieval-Augmented Generation (RAG)
-
-Backend
-
-FastAPI (Python)
-
-REST APIs
-
-Workflow Automation
-
-n8n
-
-Data & Storage
-
-Vector Database: Pinecone / Chroma
-
-PostgreSQL (audit logs)
+Integrates with external systems via HTTP/Webhooks
 
 Frontend
 
-React (minimal chat UI)
+Simple chat-style interface
+
+Displays user queries and AI responses
+
+Communicates with backend via HTTP requests
+
+⚙️ Tech Stack
+AI
+
+LLM Runtime: Ollama (local inference)
+
+Models: Phi / Llama-family models (CPU-based)
+
+Backend & Automation
+
+n8n (self-hosted)
+
+Webhooks & HTTP Request nodes
+
+Frontend
+
+React (Vite)
+
+Tailwind CSS
+
+Chat-style UI
 
 DevOps
 
@@ -122,132 +110,91 @@ Docker Compose
 
 ✨ Features
 
-✅ Document-based answers with citations
+✅ Local AI inference using Ollama
+
+✅ Intent-based query handling
 
 ✅ Automated ticket creation
 
-✅ Email & notification workflows
+✅ Email / notification workflows
 
-✅ Explainable AI decisions
+✅ Workflow-driven architecture
 
-✅ Full audit trail
+✅ Privacy-first, self-hosted setup
 
-✅ Retry & error handling
 
-✅ Production-oriented architecture
-
-📁 Repository Structure
 .
-├── backend/
-│   ├── app/
-│   ├── main.py
-│   ├── requirements.txt
-│   └── Dockerfile
 ├── frontend/
 │   ├── src/
 │   └── Dockerfile
 ├── n8n/
 │   └── workflow.json
-├── sample_docs/
-│   ├── refund_policy.pdf
-│   └── faq.pdf
 ├── docker-compose.yml
 └── README.md
 
-📄 Document Ingestion (RAG)
 
-Documents are ingested once, not during chat.
-
-Ingestion Flow:
-
-PDF / Text → Chunking → Embeddings → Vector DB
-
-
-These documents are later queried during chat to generate grounded responses.
-
-🚀 Installation & Setup
+🚀 Setup & Run
 Prerequisites
 
 Docker & Docker Compose
 
-OpenAI API key
+Ollama installed locally
 
-Vector DB API key (Pinecone or Chroma)
+1️⃣ Start Ollama
+ollama serve
+ollama pull phi3:mini
 
-1️⃣ Clone Repository
-git clone https://github.com/your-username/ai-support-automation
-cd ai-support-automation
-
-2️⃣ Environment Variables
-
-Create a .env file in the backend directory:
-
-OPENAI_API_KEY=your_openai_key
-PINECONE_API_KEY=your_pinecone_key
-DATABASE_URL=postgresql://user:pass@postgres:5432/supportdb
-
-3️⃣ Start Services
+2️⃣ Start n8n
 docker-compose up -d
 
-4️⃣ Access Services
-
-Backend API: http://localhost:8000
+3️⃣ Access Services
 
 n8n UI: http://localhost:5678
 
 Frontend UI: http://localhost:3000
 
-5️⃣ Import n8n Workflow
+🧪 Example Interaction
 
-Open n8n UI
+User:
 
-Import n8n/workflow.json
+I want a refund for order #12345
 
-Configure credentials
+System Actions:
 
-Activate workflow
+LLM interprets intent as a refund request
 
-🧪 Testing
-Functional Testing
+n8n workflow is triggered
 
-Knowledge query → RAG answer with citation
+Ticket is created automatically
 
-Action request → ticket creation + email
-
-Follow-up query → contextual answer
-
-Failure Testing
-
-Simulate API failure
-
-Verify retry logic
-
-Confirm escalation & logging
-
-🎥 Demo Flow
-
-Ask a policy question → answer with citation
-
-Request refund → ticket created automatically
-
-Email confirmation sent
-
-Audit log recorded
+Confirmation response is returned to the user
 
 📊 Use Cases
 
-SaaS customer support
+Customer support automation
 
-E-commerce issue resolution
+Internal helpdesk systems
 
-Ed-tech student queries
+Privacy-sensitive applications
 
-Telecom service requests
+Workflow-driven AI assistants
 
 🏁 Conclusion
 
-This project demonstrates how AI + RAG + workflow automation can transform customer support into an intelligent, autonomous, and explainable system suitable for enterprise deployment.
+This project demonstrates how local LLMs combined with workflow orchestration can be used to build an intelligent, automated customer support system without relying on cloud AI services.
+
+It highlights a practical approach to AI + automation using open-source tools and self-hosted infrastructure.
 
 👤 Author
 
-Developed as a hackathon project focused on AI automation, explainable systems, and real-world applicability.
+Developed as a hackathon / portfolio project focused on:
+
+Local AI inference
+
+Workflow automation
+
+Practical system design
+
+Privacy-first architectures
+
+
