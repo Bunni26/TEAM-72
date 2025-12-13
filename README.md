@@ -51,7 +51,7 @@ n8n Workflow Orchestration
  ↓
 Actions (Ticket, Email, Escalation)
  ↓
-Audit Logs & Memory Storage
+Simple Memory
 
 🤖 Core Components
 1. AI Agent
@@ -84,13 +84,6 @@ Retry & failure handling
 
 Integration with external systems
 
-4. Memory & Audit
-
-Short-term memory for conversations
-
-Long-term semantic memory (vector DB)
-
-Full audit logs stored in PostgreSQL
 
 ⚙️ Tech Stack
 AI & NLP
