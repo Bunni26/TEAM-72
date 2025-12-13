@@ -147,11 +147,6 @@ ollama pull phi3:mini
 2️⃣ Start n8n
 docker-compose up -d
 
-3️⃣ Access Services
-
-n8n UI: http://localhost:5678
-
-Frontend UI: http://localhost:3000
 
 🧪 Example Interaction
 
