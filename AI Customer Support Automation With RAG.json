@@ -1,0 +1,475 @@
+{
+  "name": "AI Customer Support Automation With RAG",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "06485f23-4aca-453e-be60-b7c7e0f7539c",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        224
+      ],
+      "webhookId": "customer-support-webhook",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn [\n  {\n    json: {\n      user_message: data.user_message,\n      email: data.email,\n      priority: data.priority\n    }\n  }\n];\n"
+      },
+      "id": "e677058c-ffa1-4646-a5c6-1bb27ce22142",
+      "name": "Detect Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_action }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "4db74fc2-3ce4-48db-9b36-1024e074e0b8",
+      "name": "Intent Branch",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst userMessage = input.user_message;\n\nconst prompt = `\nYou are a customer support assistant.\n\nUser issue:\n${userMessage}\n\nWrite a clear, polite, and helpful response.\n`;\n\nreturn [\n  {\n    json: {\n      prompt\n    }\n  }\n];\n"
+      },
+      "id": "70bfa2aa-ab88-41fb-80de-4ac268b18bea",
+      "name": "Build RAG Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    answer: $json.response\n  }\n}];\n"
+      },
+      "id": "d9b962fc-a80e-4332-a872-b63c60b2ec9e",
+      "name": "Parse LLM Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "2cd46174-8166-4e74-8bc9-e091b0c7e618",
+      "name": "Respond (Answer)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/8aef6b04-bbc1-48ad-8db2-8a368fa8fd9e",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ticket_id\": \"={{ 'TKT-' + $now.format('yyyyMMdd') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase() }}\",\n  \"title\": \"={{ $json.title || 'Customer Support Request' }}\",\n  \"description\": \"={{ $json.message || $json.query || 'No description provided' }}\",\n  \"user_id\": \"={{ $json.user_id || 'anonymous' }}\",\n  \"priority\": \"medium\",\n  \"status\": \"open\",\n  \"created_at\": \"={{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "id": "e70aab78-e261-4732-ace9-0a954c4960ea",
+      "name": "Create Ticket (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        224,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@example.com",
+        "toEmail": "={{ $json.user_email || 'customer@example.com' }}",
+        "subject": "Support Request Received - {{ $json.ticket_id }}",
+        "options": {}
+      },
+      "id": "fb906d4a-14fb-4474-aa42-86c5eff9bc57",
+      "name": "Send Email (SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        336
+      ],
+      "webhookId": "72ced261-547a-4414-b5ae-b750e4f9fe6f",
+      "credentials": {
+        "smtp": {
+          "id": "KeV1jZ6BKiUZDOE4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/8aef6b04-bbc1-48ad-8db2-8a368fa8fd9e",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"ticket_created\",\n  \"ticket_id\": \"={{ $json.ticket_id }}\",\n  \"user_id\": \"={{ $json.user_id }}\",\n  \"timestamp\": \"={{ $now.toISO() }}\",\n  \"status\": \"success\"\n}",
+        "options": {}
+      },
+      "id": "6d8b5235-3307-4b1b-b92e-69a86972320d",
+      "name": "Audit (Action)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        672,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Your refund request has been recorded. Our support team will contact you shortly.\"\n}\n",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "3faa7500-7667-4d62-8088-d05bc888e9d2",
+      "name": "Respond (Action)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        880,
+        336
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "f10c4bbd-49a2-409a-a861-699cd4cd9653",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        160,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ecd8393f-4bdd-4117-86a4-1d253c968164",
+      "name": "Set Error Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        368,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://o4510527145902080.ingest.us.sentry.io/api/4510527628181504/store/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Sentry-Auth",
+              "value": "Sentry sentry_version=7, sentry_key=4656b58317adc1597601ec50e77e0831"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event_id\": \"abcd1234abcd1234abcd1234abcd1234\",\n  \"timestamp\": 1734105600,\n  \"level\": \"error\",\n  \"platform\": \"node\",\n  \"message\": \"Test error from n8n\"\n}",
+        "options": {}
+      },
+      "id": "b9e56612-b2c9-4246-9918-3fa4b8edfc19",
+      "name": "Sentry Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        560,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nomic-embed-text\",\n  \"prompt\": \"{{ $json.user_message }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2d43b3d3-de14-4f57-b74e-ac2e719d5cda",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"phi3:mini\",\n  \"prompt\": {{ JSON.stringify($json.prompt) }},\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        704,
+        0
+      ],
+      "id": "179fc481-342c-4606-be69-5f64efc70e26",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Detect Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Intent": {
+      "main": [
+        [
+          {
+            "node": "Intent Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Branch": {
+      "main": [
+        [
+          {
+            "node": "Create Ticket (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build RAG Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM Output": {
+      "main": [
+        [
+          {
+            "node": "Respond (Answer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Ticket (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Send Email (SMTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email (SMTP)": {
+      "main": [
+        [
+          {
+            "node": "Audit (Action)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit (Action)": {
+      "main": [
+        [
+          {
+            "node": "Respond (Action)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Error Details": {
+      "main": [
+        [
+          {
+            "node": "Sentry Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Build RAG Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "53be5a0d-7bf0-41cc-9be7-963d2ea78b7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f114f7889e407f73ee45e8407bed0912cc563a9ff7011760cf877a53262c6086"
+  },
+  "id": "b7AAQVlBN7I0do1U",
+  "tags": [
+    {
+      "updatedAt": "2025-12-13T19:45:06.582Z",
+      "createdAt": "2025-12-13T19:45:06.582Z",
+      "id": "W2AB5Xb0z0wkizil",
+      "name": "rag"
+    },
+    {
+      "updatedAt": "2025-12-13T19:45:06.608Z",
+      "createdAt": "2025-12-13T19:45:06.608Z",
+      "id": "seHynmTbA7ljq9GX",
+      "name": "customer-support"
+    }
+  ]
+}
