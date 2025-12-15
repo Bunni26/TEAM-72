@@ -202,6 +202,25 @@ Output :
 <img width="1891" height="1185" alt="image" src="https://github.com/user-attachments/assets/dfb48db1-d723-4d71-bea8-9199323fc057" />
 
 
+turn on n8n :
+docker run -it --rm -p 5678:5678 ^
+-e N8N_BASIC_AUTH_ACTIVE=true ^
+-e N8N_BASIC_AUTH_USER=admin ^
+-e N8N_BASIC_AUTH_PASSWORD=admin ^
+-e N8N_HOST=localhost ^
+-e N8N_PORT=5678 ^
+-e N8N_PROTOCOL=http ^
+-v n8n_data:/home/node/.n8n ^
+n8nio/n8n
+
+For Frontnd:
+npm install
+npm run dev
+
+Deployment : 
+turn on Docker 
+
+
 
 
 
