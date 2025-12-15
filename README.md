@@ -193,3 +193,16 @@ Practical system design
 Privacy-first architectures
 
 
+Output : 
+
+
+<img width="1911" height="1182" alt="image" src="https://github.com/user-attachments/assets/b39c1c29-f923-42c5-8032-234bcfbbcb78" />
+<img width="1919" height="1193" alt="image" src="https://github.com/user-attachments/assets/1d2f2f94-161a-4f14-a5af-dba0b013a836" />
+<img width="1916" height="1189" alt="image" src="https://github.com/user-attachments/assets/809bb2f7-18a3-479e-bbf5-3df0edaa1663" />
+<img width="1891" height="1185" alt="image" src="https://github.com/user-attachments/assets/dfb48db1-d723-4d71-bea8-9199323fc057" />
+
+
+
+
+
+
